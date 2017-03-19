@@ -1,0 +1,42 @@
+doctype html
+html
+    head        
+        link(rel="stylesheet", type="text/css", href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.css")
+        link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css", rel="stylesheet", integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN", crossorigin="anonymous")
+        link(href="https://fonts.googleapis.com/css?family=Raleway:100", rel="stylesheet")
+        link(href="css/flipclock.css", rel="stylesheet")
+        style.
+            .flip-clock-divider, .clock ul:nth-child(-n+8) {
+                display: none;
+            }
+
+            .inline {
+                float: left;
+            }
+
+        
+
+    body(style="background-image:url('./img/matterhorn.jpg'); background-size: cover; overflow: hidden")
+        
+        .ui.center.aligned.huge.inverted.header(style="margin-top: 70px; font-family: 'Raleway'") Sorry!&nbsp;&nbsp;Something went wrong
+
+        .ui.middle.aligned.centered.grid(style="margin-top: 50px; font-family: 'Raleway'; color: white")
+            .row
+                .column(style="width: 150px; font-size: 20px") Redirecting in
+                .column(style="margin-left: -20px")
+                    .clock
+                .column(style="margin-left: 40px; font-size: 20px") seconds
+
+        script(src="https://code.jquery.com/jquery-3.1.1.min.js", integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=", crossorigin="anonymous")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.js")
+        script(src="js/flipclock.min.js")
+        script.
+            var clock = $('.clock').FlipClock(3, {
+                countdown: true,
+                callbacks: {
+                    stop: () => {
+                        window.location.replace('/');
+                    }
+                }
+            });
+        

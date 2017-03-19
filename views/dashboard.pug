@@ -1,0 +1,522 @@
+doctype html
+html
+    head
+        link(rel="stylesheet", type="text/css", href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.9/semantic.min.css")
+        link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css", rel="stylesheet", integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN", crossorigin="anonymous")
+
+        link(href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet")
+        link(href="css/styles.css", rel="stylesheet")
+                
+    body
+
+        // Navbar
+        .ui.fixed.yellow.inverted.secondary.menu
+            a.item
+                i.fa.fa-bars
+            a.item.red Dashboard
+            .right.menu
+                a.item#menu-profile-icon
+                    img.ui.circular.mini.image(src=pic)
+                #profile-popup.ui.popup
+                    .ui.grid
+                        .row
+                            .item
+                                .ui.tiny.circular.image
+                                    img(src=pic)
+                                .middle.aligned.content
+                                    .header(style="color: grey; font-weight: bold; font-size: 16px")= name || 'Guest'
+                                    a.ui.google.plus.labeled.icon.mini.button(href="https://myaccount.google.com" style="margin-top: 10px")
+                                        i.google.plus.icon
+                                        | My account
+                                    
+                        .row(style="background-color: #ECEFF1")
+                            .column
+                                a.ui.primary.button(href="/logout") Sign Out
+
+                                  
+                    
+        // Main content
+        .ui.inverted.blue.vertical.segment(style="padding-top: 40px; min-height: 100%")
+
+            // Torrent error and success messages (if any)
+            .torrent.messages(style="padding-top: 15px")
+                #torrent-errors
+                #torrent-success     
+            
+            .ui.container
+                .ui.grid(style="padding-top: 40px")                
+                    .row
+                        .left.floated.column
+                            h1.ui.inverted.header(style="font-family: Source Sans Pro; font-size: 3rem; font-weight: 300") Hi #{name || 'Guest'}
+                    
+                    .centered.row
+                        .ui.steps
+                            .completed.disabled.step
+                                i.google.icon(style="color: #4885ed")
+                                .content
+                                    .title Login
+                                    .description with your Google Account
+                            a#upload-step.active.step
+                                i.magnet.green.icon
+                                .content
+                                    .title Upload
+                                    .description your torrent file
+                            a.active.step(href=`${driveUrl}`, target="_blank")
+                                i.desktop.orange.icon
+                                .content
+                                    .title View
+                                    .description files in Google Drive
+
+                    // If no torrents
+                    #zero-torrents.centered.row(style="display: none")
+                        .add-torrent.ui.yellow.inverted.button
+                            .ui.items
+                                .item
+                                    i.ui.add.to.cart.large.icon
+                                    .middle.aligned.content You have nothing here yet.  Click to add your first torrent
+                    // If torrents
+                    #if-torrents.centered.row(style="display: none")
+                        .ui.vertical.left.aligned.segment(style="width: 80%")
+                            #active-torrents
+
+        // Initial upload modal
+        #add-torrent-modal.ui.basic.modal
+            i.close.icon
+            .header Upload your torrent file
+            #torrent-upload-form.ui.form.image.content
+                #torrent-upload.ui.medium.image.dropzone
+                    .ui.fade.reveal.clickable
+                        .visible.content
+                            img(src="https://www.booklogix.com/application/files/5214/1858/8110/FileUpload.png")
+                        .hidden.content
+                            img(src="http://samcloud.spacial.com/Images/Drop-Files-Here-extra.png")
+
+                .description
+                    .ui.inverted.header 
+                        i.ui.pointing.left.icon 
+                        | Click to add your .torrent file
+                    .ui.action.input
+                        input(type="text", name="magnet", placeholder="Or paste your magnet link here", style="width: 300px")
+                        .ui.teal.right.labeled.icon.submit.button Go
+                            i.upload.icon   
+                    .ui.yellow.error.message // for invalid magnet regex                      
+                    .ui.hidden.divider
+
+                    #torrent-upload-progress
+                    .dz-error-message(style="color: orange")
+
+                    #torrent-upload-spinner(style="display: none")
+                        .ui.processing.active.dimmer
+                            .ui.indeterminate.text.loader Processing torrent
+            .actions
+                .ui.negative.right.labeled.icon.button Close
+                    i.remove.icon
+                .ui.positive.right.labeled.icon.button Done
+                    i.checkmark.icon
+        
+
+        // (De)select torrent files modal
+        #update-torrent-files-modal.ui.modal
+            .header Select files to download
+            .content
+                #torrent-files-select-form.ui.form
+                    .field
+                        .ui.relaxed.list
+            .actions
+                .ui.positive.right.labeled.icon.button Done
+                    i.checkmark.icon
+
+        // Delete torrent modal
+        #delete-torrent-modal.ui.modal
+            .header Delete torrent?
+            .image.content
+                .ui.small.image
+                    img(src="./img/trash.ico")
+                .description
+                    .ui.header You are trying to delete torrent
+                    ul
+                        li
+                    p Proceed?
+                    p(style="color: orange") Note: This action will <strong>not remove</strong> files in your Google Drive.
+            .actions
+                .ui.negative.right.labeled.icon.button Cancel
+                    i.remove.icon
+                .ui.positive.right.labeled.icon.button Proceed
+                    i.checkmark.icon
+
+        script(src="https://code.jquery.com/jquery-3.1.1.min.js", integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=", crossorigin="anonymous")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.9/semantic.min.js")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/4.3.0/min/dropzone.min.js")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/moment-duration-format/1.3.0/moment-duration-format.min.js")
+        script(src="https://cdn.filesizejs.com/filesize.min.js")
+        script(src="js/scripts.js")        
+        script.
+            /* PART I: page interaction */
+            // profile icon menu bar
+            $('#menu-profile-icon').popup({
+                popup: $('#profile-popup'),
+                on: 'click'
+            });
+
+            // upload modal
+            $('#upload-step, .add-torrent.button').click(() => {
+                $('#add-torrent-modal').modal('show');
+            });         
+
+            // dismissible success / error messages
+            $('body').on('click', '.message .close', (event) => {
+                $(event.target).closest('.message').transition('fade');
+            });
+
+            // magnet input field in upload modal
+            $('#torrent-upload-form').form({
+                fields: {
+                    magnet: {
+                        identifier: 'magnet',
+                        rules: [{
+                            type: 'regExp',
+                            value: '/^magnet:\\?/',
+                            prompt: 'Please enter a valid magnet link.  It should begin with <strong><em>magnet:?</em></strong>'
+                        }]
+                    }
+                },
+                onSuccess: (event, fields) => {
+                    $('#torrent-upload-progress').html(`
+                        <div class="dz-preview dz-file-preview">
+                            You have added magnet:
+                            <li class="dz-details">
+                                ${fields.magnet}
+                            </li>                        
+                        </div>
+                    `);
+                    torrentUploadSpinner.show();  
+                    $.ajax({
+                        type: 'POST',
+                        url: '/add-torrent',
+                        data: { magnet: fields.magnet },
+                        success: (data) => addTorrentCallback(null, data),
+                        error: (xhr) => addTorrentCallback(xhr.responseJSON),
+                        timeout: 20000 // 20 seconds
+                    });
+                }
+            });           
+
+            // .torrent file upload in upload modal
+            Dropzone.autoDiscover = false;
+            const dropZone = new Dropzone('#torrent-upload', {
+                url: '/add-torrent',
+                paramName: "torrent", // The name that will be used to transfer the file
+                maxFilesize: 1,       // MB
+                clickable: '.ui.fade.reveal.clickable',
+                previewsContainer: '#torrent-upload-progress',
+                previewTemplate: `
+                    <div class="dz-preview dz-file-preview">
+                        You have chosen file:
+                        <li class="dz-details">
+                            <span data-dz-name></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span data-dz-size></span>)
+                        </li>                        
+                    </div>
+                `,
+                dictDefaultMessage: '',             
+                maxFiles: 1,
+                init: function() {
+                    this.on('addedfile', (file) => {
+                        if (this.files.length > 1) {
+                            this.removeFile(this.files[0]);
+                        }
+                    });
+
+                    this.on('success', (file, data) => {
+                        addTorrentCallback(null, data);
+                    });
+
+                    this.on('error', (file, err) => {
+                        addTorrentCallback(err)
+                    });
+                },
+                accept: function(file, done) {   
+                    if (!file.name.endsWith('.torrent')) {
+                        return done('Only .torrent files are supported');
+                    }
+                    if (file.size == 0) {
+                        return done('File must not be empty');
+                    }
+                    done();
+                },
+                sending: function() {                
+                    torrentUploadSpinner.show();
+                }
+            });
+            
+        script.
+            /* PART II: torrent interaction utility functions */
+            // server callback from POST /add-torrent
+            const addTorrentCallback = (err, torrent) => {
+                torrentUploadSpinner.hide();
+                if (err) {
+                    return $('.dz-error-message').html(`
+                        <strong>Error:</strong>&nbsp;&nbsp;${err.message}.<br>
+                        <strong>Please try again.</strong>
+                    `);
+                }
+                showUpdateTorrentFilesModal(torrent);
+            };
+
+            // show spinner while waiting for server response during /add-torrent
+            const torrentUploadSpinner = (() => {
+                let task = null;
+                return {
+                    show: () => {       
+                        task = setTimeout(() => {
+                            $('#torrent-upload-spinner').fadeIn();
+                        }, 500);       
+                    },
+                    hide: () => {
+                        clearTimeout(task);
+                        $('#torrent-upload-spinner').hide();
+                    }          
+                }
+            })();
+
+            // get all torrents
+            const getTorrents = () => {
+                $.get('/get-torrents', (torrents) => {
+                    if (torrents.length) {
+                        $('#zero-torrents').hide();
+                        $('#if-torrents').show();
+                    } else {
+                        $('#zero-torrents').show();
+                        $('#if-torrents').hide();
+                    }
+                    updatePageWithTorrents(torrents);
+                });
+            }
+
+            // delete torrent
+            const deleteTorrent = (torrent) => {
+                $.post('/delete-torrent', {infoHash: torrent.infoHash})
+                 .done(() => {
+                    showTorrentSuccess([torrent], 'Removed torrent');
+                 })
+                 .always(() => {
+                    $(`#torrent-${torrent.infoHash}`).remove();
+                 });
+            }
+
+            // display torrents on page
+            const updatePageWithTorrents = (torrents) => {
+                torrents.forEach((torrent) => {
+                    const name = torrent.name;
+                    const size = filesize(torrent.size); // B, KB, MB, etc...
+                    const downloaded = filesize(torrent.downloaded); 
+                    const uploaded = filesize(torrent.uploaded);
+                    const received = filesize(torrent.received);
+                    const downloadSpeed = `${filesize(torrent.downloadSpeed)}/s`; // B/s, KB/s, MB/s, etc...
+                    const uploadSpeed = `${filesize(torrent.uploadSpeed)}/s`;
+                    const eta = torrent.timeRemaining >= 0?
+                                moment.duration(torrent.timeRemaining).format('d[d] h[h] m[m] s[s]'): // seconds
+                                '∞'; // infinity if eta is null
+
+                    if ($(`#torrent-${torrent.infoHash}`).length) {
+                        // torrent already exists in page, update bar and table only
+                        $(`#name-${torrent.infoHash}`).text(name);
+                        $(`#filesize-${torrent.infoHash}`).text(size);
+
+                        const table = $(`#table-${torrent.infoHash}`);
+                        table.find('.downloaded').first().text(downloaded);
+                        table.find('.uploaded').first().text(uploaded);
+                        table.find('.eta').first().text(eta);
+                        table.find('.received').first().text(received);
+                        table.find('.ratio').first().text(torrent.ratio);
+                        table.find('.peers').first().text(torrent.peers);
+                    } else {
+                        // display new torrent in page
+                        const html = `
+                            <div class="ui fluid card" id="torrent-${torrent.infoHash}">
+                                <div class="content">
+                                    <div class="header">
+                                        <span id="name-${torrent.infoHash}">${torrent.name}</span>
+                                        &nbsp;
+                                        (<span id="filesize-${torrent.infoHash}">${filesize(torrent.size)}</span>)
+                                    </div>
+                                </div>
+                                <div class="content">
+                                    <div class="ui indicating progress" id="progress-${torrent.infoHash}">
+                                        <div class="bar">
+                                            <div class="progress"></div>
+                                        </div>
+                                        <div class="label"></div>
+                                    </div>
+                                </div>
+                                <div class="content">
+                                    <div class="ui accordion">
+                                        <div class="title">
+                                            <i class="dropdown icon"></i>
+                                            Torrent info
+                                            <div class="ui right floated" onclick="event.stopPropagation()">
+                                                <i class="circular orange inverted torrent file icon"></i>
+                                                <a style="display: none" target="_blank">
+                                                    <i class="circular teal inverted torrent cloud download icon"></i>
+                                                </a>                                                
+                                                <i class="circular red inverted torrent trash icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="content">
+                                            <table class="ui single line very basic table" id="table-${torrent.infoHash}">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Downloaded</th>
+                                                        <th>Uploaded</th>
+                                                        <th>ETA</th>
+                                                        <th>Received</th>
+                                                        <th>Ratio</th>
+                                                        <th>Peers</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="downloaded">${downloaded}</td>
+                                                        <td class="uploaded">${uploaded}</td>
+                                                        <td class="eta">${eta}</td>
+                                                        <td class="received">${received}</td>
+                                                        <td class="ratio">${torrent.ratio}</td>
+                                                        <td class="peers">${torrent.numPeers}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $(html).hide().appendTo('#active-torrents').fadeIn();                        
+
+                        // delete torrent icon
+                        $(`#torrent-${torrent.infoHash} .torrent.trash.icon`).click(() => {
+                            $('#delete-torrent-modal li').text(`${torrent.name} (${filesize(torrent.size)})`)
+                            $('#delete-torrent-modal')
+                            .modal({
+                                closable: false,
+                                onApprove: () => deleteTorrent(torrent)
+                            })
+                            .modal('show');
+                        });
+                    }
+                    // update torrent progress
+                    $(`#progress-${torrent.infoHash}`).progress({
+                        label: 'percent',
+                        percent: torrent.progress * 100,
+                        text: {
+                            active: `Down ${downloadSpeed} Up ${uploadSpeed} ETA ${eta}`,
+                            success: 'Complete'
+                        }
+                    });
+                    // update torrent files modal checkboxes
+                    $(`#torrent-${torrent.infoHash} .torrent.file.icon`).off('click').click(() => {
+                        showUpdateTorrentFilesModal(torrent);
+                    });
+                    // update modal / drive shortcut visibility
+                    if (torrent.driveUrl) {
+                        $(`#torrent-${torrent.infoHash} .torrent.file.icon`).hide();
+                        const driveIcon = $(`#torrent-${torrent.infoHash} a:has(.torrent.cloud.download.icon)`);
+                        driveIcon.attr('href', torrent.driveUrl);
+                        driveIcon.show();
+                    }
+                });
+                $('.ui.accordion').accordion();
+            }
+
+            // display error messages
+            const showTorrentErrors = (torrents) => {
+                torrents.map((torrent) => {
+                    const html = `
+                        <div class="ui error message">
+                            <i class="close icon"></i>
+                            <div class="header">
+                                <i class="warning circle icon"></i>
+                                Download failed
+                            </div>
+                            <ul class="list">
+                                <li>Torrent: ${torrent.name} (${filesize(torrent.size)})</li>
+                                <li>Error: ${torrent.error}</li>
+                            </ul>
+                        </div>
+                    `;
+                    $(html).hide().appendTo('#torrent-errors').fadeIn();
+                });                
+            }
+
+            // display success messages
+            const showTorrentSuccess = (torrents, overrideMessage) => {
+                const successMessage = overrideMessage? overrideMessage: 'Download success';
+                torrents.map((torrent) => {
+                    const html = `
+                        <div class="ui success message">
+                            <i class="close icon"></i>
+                            <div class="header">
+                                <i class="check circle icon"></i>
+                                ${successMessage}
+                            </div>
+                            <ul class="list">
+                                <li>Torrent: ${torrent.name} (${filesize(torrent.size)})</li>
+                            </ul>
+                        </div>
+                    `;
+                    $(html).hide().appendTo('#torrent-success').fadeIn();
+                });                
+            }
+
+            // display #update-torrent-files-modal
+            const showUpdateTorrentFilesModal = (torrent) => {
+                const fileListHtml = torrent.files.map((file) => {
+                        return `
+                            <div class="item">
+                                <div class="ui master checkbox">
+                                    <input type="checkbox" ${file.selected? 'checked': ''}>
+                                    <label>${file.name} (${filesize(file.length)})</label>
+                                </div>
+                            </div>
+                        `;
+                    });
+                $('#update-torrent-files-modal .list').html(fileListHtml);
+                $('#update-torrent-files-modal')
+                    .modal({
+                        closable: false,
+                        onApprove: () => {
+                            const selectedFiles = [];
+                            $(".ui.relaxed.list input[type='checkbox']").each((i, checkbox) => {
+                                selectedFiles.push(checkbox.checked);
+                            });
+                            $.post('/update-torrent', {
+                                infoHash: torrent.infoHash,
+                                selectedFiles: selectedFiles
+                            });
+                        }
+                    })
+                    .modal('show');
+            }
+
+
+        script.
+            // Socket.io code goes here
+            const socket = io();
+
+            // poll every second
+            const updateInterval = 1000;  
+            getTorrents();
+            setInterval(getTorrents, updateInterval);            
+
+            socket.on('torrent-update', (torrents) => {
+                updatePageWithTorrents(torrents);
+            });
+
+            socket.on('torrent-error', (torrents) => {
+                showTorrentErrors(torrents);
+            });
+
+            socket.on('torrent-success', (torrents) => {
+                showTorrentSuccess(torrents);
+            });
+

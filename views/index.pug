@@ -1,0 +1,90 @@
+doctype html
+html
+    head
+        link(rel="stylesheet", type="text/css", href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.9/semantic.min.css")
+        link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css", rel="stylesheet", integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN", crossorigin="anonymous")
+
+        link(href="https://fonts.googleapis.com/css?family=Source+Sans+Pro", rel="stylesheet")
+        link(href="css/styles.css", rel="stylesheet")
+                
+    body
+
+        .ui.fixed.inverted.secondary.menu
+            a.item
+                i.fa.fa-bars
+            a.item.red Home
+            .right.menu
+                a.item(href="/login")
+                    .ui.primary.button Log in
+
+        .ui.inverted.vertical.segment(style="padding-top: 40px; min-height: 100%; background-image: url('./img/galaxy.jpg'); background-size: cover")
+            if error
+                .ui.small.basic.error.modal
+                    i.gold.close.icon
+                    .header(style="color: orange; font-size: 36px") 
+                        i.warning.sign.icon
+                        | Error
+                    .image.content
+                        .ui.items
+                            .item
+                                .ui.small.image
+                                    img(src="http://ctboom.com/wp-content/uploads/Road-Work-Ahead-sign-from-Web1.jpg")
+                                .middle.aligned.content(style="margin-left: 50px; font-size: 24px")= error
+                    .actions
+                        .ui.positive.right.labeled.icon.button OK
+                            i.checkmark.icon
+
+            .ui.container
+                .ui.grid(style="padding-top: 40px")                
+                    .centered.row
+                        h1.ui.inverted.header(style="font-family: Source Sans Pro; font-size: 3rem; font-weight: 300") Download torrents the fast way
+                    
+                    .centered.row
+                        .ui.steps
+                            a.active.step(href="/login")
+                                i.google.icon(style="color: #4885ed")
+                                .content
+                                    .title Login
+                                    .description with your Google Account
+                            .step
+                                i.magnet.green.icon
+                                .content
+                                    .title Upload
+                                    .description your torrent file
+                            .step
+                                i.desktop.orange.icon
+                                .content
+                                    .title View
+                                    .description files in Google Drive
+                    .centered.row
+                        .twelve.wide.column.middle.aligned
+                            #speedometer.ui.orange.active.striped.indicating.progress(data-percent="0")
+                                .bar(style="width: 100%")
+                                    .progress       
+                        .ui.tiny.image(style="margin-left: 20px")
+                                img(src="https://cdn1.iconfinder.com/data/icons/miscellaneous-4/32/dashboard-high-512.png")
+                            
+                    .centered.row
+                        a(href="/login")
+                            button.ui.pink.right.labeled.icon.button
+                                i.right.arrow.icon
+                                | Get Started
+
+        script(src="https://code.jquery.com/jquery-3.1.1.min.js", integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=", crossorigin="anonymous")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.9/semantic.min.js")
+        script(src="js/scripts.js")
+        script.
+            const updateSpeedometer = () => {
+                const speedometer = $('#speedometer');
+                speedometer.progress('increment');
+                if(speedometer.progress('is complete')) {
+                    speedometer.progress('reset')
+                }
+            }
+            setInterval(updateSpeedometer, 250);
+
+            $('.message .close').click(() => {
+                $('.message').transition('fade');
+            });            
+
+            $('.ui.small.error.modal').modal('show');
