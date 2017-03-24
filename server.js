@@ -21,6 +21,7 @@ const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const path = require('path');
 const util = require('util');
+const locks = require('locks');
 const async = require('async');
 const _ = require('lodash');
 const driveIO = require('google-drive-io');
@@ -418,30 +419,44 @@ const getSelectedFiles = (torrent) => {
 }
 
 const attachCompleteHandler = (torrent, auth, socket) => {
+    const mutex = locks.createMutex(); // prevent race condition during google drive operations
+
     torrent.files.forEach((file) => {
         file.on('done', () => {
             // Update torrent as success if all files have completed
             const info = getTorrentInfo(torrent)[0];
             const torrentFolderPath = path.join(DRIVE_TORRENT_DIR, torrent.name);            
-            if (info.progress == 1) {                 
-                driveIO.createFolderIfNotExists(torrentFolderPath, DRIVE_RETURN_FIELDS, auth, (err, torrentFolder) => {
-                    torrent.driveUrl = torrentFolder.webViewLink;
-                })             
-                socket.emit('torrent-success', getTorrentInfo(torrent));
+            if (info.progress == 1) { 
+                mutex.lock(() => {                    
+                    driveIO.createFolderIfNotExists(torrentFolderPath, DRIVE_RETURN_FIELDS, auth, (err, torrentFolder) => {
+                        mutex.unlock();
+                        if (err) {
+                            console.error(err);
+                            torrent.error = err.message;
+                            socket.emit('torrent-error', getTorrentInfo(torrent));
+                        }
+                        torrent.driveUrl = torrentFolder.webViewLink;
+                        socket.emit('torrent-success', getTorrentInfo(torrent));
+                        console.log(`Created torrent folder on google drive: ${torrent.name}`);
+                    });
+                });
             }
             if (file.selected) {
-                const uploadPath = path.join(torrentFolderPath, file.path);
+                const uploadPath = path.join(DRIVE_TORRENT_DIR, file.path);
                 const filePath = path.join(torrent.path, file.path);
-                driveIO.uploadFileIfNotExists(filePath, uploadPath, DRIVE_RETURN_FIELDS, auth, (err) => {
-                    if (err) {
-                        console.error(err);
-                        torrent.error = err.message;
-                        socket.emit('torrent-error', getTorrentInfo(torrent));
-                    }
-                    socket.emit('torrent-update', getTorrentInfo(torrent));
-                    console.log(`File uploaded to google drive: ${file.name}`);         
-                });               
-            }                   
+                mutex.lock(() => {
+                    driveIO.uploadFileIfNotExists(filePath, uploadPath, DRIVE_RETURN_FIELDS, auth, (err, uploaded) => {
+                        mutex.unlock();
+                        if (err) {
+                            console.error(err);
+                            torrent.error = err.message;
+                            socket.emit('torrent-error', getTorrentInfo(torrent));
+                        }
+                        socket.emit('torrent-update', getTorrentInfo(torrent));
+                        console.log(`File uploaded to google drive: ${file.name}, with id: ${uploaded.id}`);         
+                    });
+                });          
+            }
         });
     });
 }
