@@ -172,6 +172,7 @@ app.post('/add-torrent', (req, res) => {
             if (err) {
                 return res.status(500).json({message: err.message});
             }
+            console.log(`Added torrent: ${util.inspect(torrent.files)}`);
             const torrentFiles = {
                 infoHash: torrent.infoHash,
                 files: getFileInfos(torrent)
@@ -442,7 +443,7 @@ const attachCompleteHandler = (torrent, auth, socket) => {
                 });
             }
             if (file.selected) {
-                const uploadPath = path.join(DRIVE_TORRENT_DIR, file.path);
+                const uploadPath = path.join(torrentFolderPath, file.path);
                 const filePath = path.join(torrent.path, file.path);
                 mutex.lock(() => {
                     driveIO.uploadFileIfNotExists(filePath, uploadPath, DRIVE_RETURN_FIELDS, auth, (err, uploaded) => {
@@ -453,7 +454,7 @@ const attachCompleteHandler = (torrent, auth, socket) => {
                             socket.emit('torrent-error', getTorrentInfo(torrent));
                         }
                         socket.emit('torrent-update', getTorrentInfo(torrent));
-                        console.log(`File uploaded to google drive: ${file.name}, with id: ${uploaded.id}`);         
+                        console.log(`File uploaded to google drive: ${uploadPath}, with id: ${uploaded.id}`);         
                     });
                 });          
             }
