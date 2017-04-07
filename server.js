@@ -50,7 +50,13 @@ io.use(ios(session));
 io.on('connection', (socket) => {
     const session = socket.handshake.session;
     if ('user' in session) {
-        sockets[session.user.id] = socket;
+        const user = session.user;
+        sockets[user.id] = socket;
+
+        // send updates every second
+        const updateInterval = 1000;
+        sendUpdate(user, socket);
+        setInterval(() => sendUpdate(user, socket), updateInterval);
     }
 });
 
@@ -463,4 +469,12 @@ const attachCompleteHandler = (torrent, auth, socket) => {
             }
         });
     });
+}
+
+const sendUpdate = (user, socket) => {
+    const client = torrentClients[user.id];
+    if (!client) {
+        return socket.emit('all-torrents', []);
+    }
+    socket.emit('all-torrents', getTorrentsInfo(client.torrents));
 }

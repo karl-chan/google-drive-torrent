@@ -500,13 +500,20 @@ html
 
 
         script.
+            // PART III. Data transfer
             // Socket.io code goes here
-            const socket = io();
+            const socket = io();  
 
-            // poll every second
-            const updateInterval = 1000;  
-            getTorrents();
-            setInterval(getTorrents, updateInterval);            
+            socket.on('all-torrents', (torrents) => {
+                if (torrents.length) {
+                    $('#zero-torrents').hide();
+                    $('#if-torrents').show();
+                } else {
+                    $('#zero-torrents').show();
+                    $('#if-torrents').hide();
+                }
+                updatePageWithTorrents(torrents);
+            });     
 
             socket.on('torrent-update', (torrents) => {
                 updatePageWithTorrents(torrents);
