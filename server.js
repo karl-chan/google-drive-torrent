@@ -419,15 +419,18 @@ const getSelectedFiles = (torrent) => {
     return torrent.files.filter((file) => file.selected);
 }
 
+const torrentIsDone = (torrent) => {
+    return _.every(getSelectedFiles(torrent), file => file.done);
+}
+
 const attachCompleteHandler = (torrent, auth, socket) => {
     const mutex = locks.createMutex(); // prevent race condition during google drive operations
 
     torrent.files.forEach((file) => {
         file.on('done', () => {
             // Update torrent as success if all files have completed
-            const info = getTorrentInfo(torrent)[0];
             const torrentFolderPath = path.join(DRIVE_TORRENT_DIR, torrent.name);            
-            if (info.progress == 1) { 
+            if (torrentIsDone(torrent)) { 
                 mutex.lock(() => {                    
                     driveIO.createFolderIfNotExists(torrentFolderPath, DRIVE_RETURN_FIELDS, auth, (err, torrentFolder) => {
                         mutex.unlock();
