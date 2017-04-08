@@ -24,6 +24,7 @@ const util = require('util');
 const locks = require('locks');
 const async = require('async');
 const _ = require('lodash');
+const zip = require('express-zip');
 const driveIO = require('google-drive-io');
 const app = express();
 
@@ -278,6 +279,20 @@ app.get('/get-torrents', (req, res) => {
         }
         const torrentsInfo = getTorrentsInfo(client.torrents);
         res.json(torrentsInfo);
+    });
+});
+
+app.get('/download/:infoHash', (req, res) => {
+    ifLoggedIn(req, res, () => {
+        const user = req.session.user;
+        const infoHash = req.params.infoHash;
+        const torrent = getTorrentForUser(infoHash, user);
+        const files  = getSelectedFiles(torrent);
+
+        const targets = files.map((file) => {
+            return {name: file.name, path: path.join(torrent.path, file.path)};
+        });
+        res.zip(targets, `${torrent.name}.zip`);
     });
 });
 

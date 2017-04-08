@@ -356,11 +356,13 @@ html
                                             <i class="dropdown icon"></i>
                                             Torrent info
                                             <div class="ui right floated" onclick="event.stopPropagation()">
-                                                <i class="circular orange inverted torrent file icon"></i>
-                                                <a style="display: none" target="_blank">
+                                                <i class="circular teal inverted torrent settings icon"></i>
+                                                <a style="display: none">
                                                     <i class="circular teal inverted torrent cloud download icon"></i>
-                                                </a>                                                
-                                                <i class="circular red inverted torrent trash icon"></i>
+                                                </a>
+                                                <a style="display: none" target="_blank">
+                                                    <i class="circular yellow inverted torrent folder open icon"></i>
+                                                </a><i class="circular red inverted torrent trash icon"></i>
                                             </div>
                                         </div>
                                         <div class="content">
@@ -419,8 +421,13 @@ html
                     });
                     // update modal / drive shortcut visibility
                     if (torrent.driveUrl) {
-                        $(`#torrent-${torrent.infoHash} .torrent.file.icon`).hide();
-                        const driveIcon = $(`#torrent-${torrent.infoHash} a:has(.torrent.cloud.download.icon)`);
+                        $(`#torrent-${torrent.infoHash} .torrent.settings.icon`).hide();
+
+                        const downloadIcon = $(`#torrent-${torrent.infoHash} a:has(.torrent.cloud.download.icon)`);
+                        downloadIcon.attr('href', `download/${torrent.infoHash}`);
+                        downloadIcon.show();
+
+                        const driveIcon = $(`#torrent-${torrent.infoHash} a:has(.torrent.folder.open.icon)`);
                         driveIcon.attr('href', torrent.driveUrl);
                         driveIcon.show();
                     }

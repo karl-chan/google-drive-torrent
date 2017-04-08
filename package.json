@@ -15,6 +15,7 @@
     "express": "^4.14.1",
     "express-fileupload": "^0.1.1",
     "express-session": "^1.15.1",
+    "express-zip": "^2.0.1",
     "google-drive-io": "^1.0.0",
     "googleapis": "^16.1.0",
     "http": "^0.0.0",
