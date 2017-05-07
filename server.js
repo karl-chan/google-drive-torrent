@@ -9,6 +9,8 @@ const DRIVE_REDIRECT_URI = process.env.DRIVE_REDIRECT_URI || 'http://localhost/l
 const DRIVE_RETURN_FIELDS = 'id,name,webViewLink';
 const DRIVE_TORRENT_DIR = 'My torrents';
 
+const isProduction = process.env.NODE_ENV == 'production';
+
 const torrentClients = {}; // {userId: Webtorrent client}
 const sockets = {}; // {userId: socket}
 
@@ -17,6 +19,8 @@ const WebTorrent = require('webtorrent');
 
 const google = require('googleapis');
 const express = require('express');
+const helmet = require('helmet');
+const forceHttps = require('express-force-https');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const path = require('path');
@@ -34,7 +38,8 @@ const ios = require('socket.io-express-session');
 const session = require('express-session')({ 
     secret: 'google-drive-torrent',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {httpOnly: true, maxAge: 60000}
 });
 
 app.set('port', (process.env.PORT || 80));
@@ -45,7 +50,12 @@ app.use(express.static(path.join(__dirname, 'views')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload());
+app.use(helmet());
 app.use(session);
+
+if (isProduction) {
+    app.use(forceHttps);
+}
 
 io.use(ios(session));
 io.on('connection', (socket) => {
