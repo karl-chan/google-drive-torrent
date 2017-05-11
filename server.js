@@ -39,6 +39,7 @@ const session = require('express-session')({
     secret: 'google-drive-torrent',
     resave: false,
     saveUninitialized: false,
+    rolling: true,
     cookie: {httpOnly: true, maxAge: 3600000}
 });
 
