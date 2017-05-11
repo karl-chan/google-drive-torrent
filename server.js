@@ -39,7 +39,7 @@ const session = require('express-session')({
     secret: 'google-drive-torrent',
     resave: false,
     saveUninitialized: false,
-    cookie: {httpOnly: true, maxAge: 60000}
+    cookie: {httpOnly: true, maxAge: 3600000}
 });
 
 app.set('port', (process.env.PORT || 80));
