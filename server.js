@@ -1,6 +1,5 @@
 "use strict";
 
-
 const driveCredentials = require('./data/driveCredentials.json');
 
 const DRIVE_CLIENT_ID = driveCredentials.clientId;
@@ -23,8 +22,8 @@ const helmet = require('helmet');
 const forceHttps = require('express-force-https');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+const fs = require('fs');
 const path = require('path');
-const util = require('util');
 const os = require('os');
 const locks = require('locks');
 const _ = require('lodash');
@@ -195,12 +194,12 @@ app.post('/add-torrent', (req, res) => {
         }
 
         const user = req.session.user;
-        const oAuth2Client = newOAuth2Client(req.session.tokens);        
+        const oAuth2Client = newOAuth2Client(req.session.tokens);
         const torrent = addTorrentForUser(torrentId, user, (err, torrent) => {
             if (err) {
                 return res.status(500).json({message: err.message});
             }
-            console.log(`Added torrent: ${util.inspect(torrent.files)}`);
+            console.log(`Added torrent: ${torrent.name} with files ${torrent.files.map(f => f.name).join(', ')}`);
             const torrentFiles = {
                 infoHash: torrent.infoHash,
                 files: getFileInfos(torrent)
@@ -247,20 +246,20 @@ app.post('/update-torrent', (req, res) => {
 
         const torrent = getTorrentForUser(infoHash, user);
 
+        // Needed as a workaround since deselect() doesn't work on its own - https://github.com/webtorrent/webtorrent/issues/164#issuecomment-248395202
+        torrent.deselect(0, torrent.pieces.length - 1, false)
+
         // deselect files based on user choice
         for (let i = 0; i < torrent.files.length; i++) {
             const file = torrent.files[i];
-            const oldSelection = file.selected;
             const newSelection = selectedFiles[i] == 'true'; // somehow selectedFiles are received as strings, need to parse
 
-            if (!oldSelection && newSelection) {
+            if (newSelection) {
                 // file selected
                 file.select();
                 file.selected = true; // attach to file object (hack!) to retrieve later
                 console.log(`Selected file: ${file.name} for user ${user.id}`);
-            }
-
-            if (oldSelection && !newSelection) {
+            } else {
                 // file deselected
                 file.deselect();
                 file.selected = false; // attach to file object (hack!) to retrieve later
@@ -385,6 +384,7 @@ const addTorrentForUser = (torrent, user, callback) => {
         }
 
         const saveToPath = path.join(os.tmpdir(), user.id, infoHash)
+        console.log(`Torrent ${infoHash} will be saved to: ${saveToPath}`)
         const torrentHandle = client.add(torrent, {
             path: saveToPath
         }, (torrent) => {
@@ -396,7 +396,6 @@ const addTorrentForUser = (torrent, user, callback) => {
             }
             callback(null, torrent);
         });
-
         torrentHandle.once('error', callbackWithError);
 
         return torrentHandle;
@@ -472,6 +471,7 @@ const attachCompleteHandler = (torrent, auth, socket) => {
     torrent.files.forEach((file) => {
         file.on('done', () => {
             // Update torrent as success if all files have completed
+            console.log(`Done for file: ${file.path}`)
             const torrentFolderPath = path.join(DRIVE_TORRENT_DIR, torrent.name);
             if (torrentIsDone(torrent)) {
                 mutex.lock(() => {
@@ -491,6 +491,8 @@ const attachCompleteHandler = (torrent, auth, socket) => {
             if (file.selected) {
                 const uploadPath = path.join(torrentFolderPath, file.path);
                 const filePath = path.join(torrent.path, file.path);
+                console.log(`Directory: ${torrent.path} exists: ${fs.existsSync(torrent.path)}`)
+                console.log(`File: ${filePath} exists: ${fs.existsSync(filePath)}`)
                 mutex.lock(() => {
                     driveIO.uploadFileIfNotExists(filePath, uploadPath, DRIVE_RETURN_FIELDS, auth, (err, uploaded) => {
                         mutex.unlock();
@@ -502,7 +504,7 @@ const attachCompleteHandler = (torrent, auth, socket) => {
                         socket.emit('torrent-update', getTorrentInfo(torrent));
                         console.log(`File uploaded to google drive: ${uploadPath}, with id: ${uploaded.id}`);
                     });
-                });          
+                });
             }
         });
     });
