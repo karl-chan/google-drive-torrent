@@ -36,7 +36,7 @@ html
                                   
                     
         // Main content
-        .ui.inverted.blue.vertical.segment(style="padding-top: 40px; min-height: 100%")
+        .ui.inverted.teal.vertical.segment(style="padding-top: 40px; min-height: 100%; background-image: url('./img/lego.jpg'); background-repeat: repeat")
 
             // Torrent error and success messages (if any)
             .torrent.messages(style="padding-top: 15px")
@@ -47,7 +47,8 @@ html
                 .ui.grid(style="padding-top: 40px")                
                     .row
                         .left.floated.column
-                            h1.ui.inverted.header(style="font-family: Source Sans Pro; font-size: 3rem; font-weight: 300") Hi #{name || 'Guest'}
+                            h1.ui.inverted.header(style="font-family: Source Sans Pro; font-size: 3rem; font-weight: 300")
+                                span(style="padding: 5px 10px; background: rgba(0, 0, 0, 0.125)") Hi #{name || 'Guest'}
                     
                     .centered.row
                         .ui.steps
@@ -69,7 +70,7 @@ html
 
                     // If no torrents
                     #zero-torrents.centered.row(style="display: none")
-                        .add-torrent.ui.yellow.inverted.button
+                        .add-torrent.ui.pink.button
                             .ui.items
                                 .item
                                     i.ui.add.to.cart.large.icon
@@ -357,7 +358,7 @@ html
                                             Torrent info
                                             <div class="ui right floated" onclick="event.stopPropagation()">
                                                 <i class="circular teal inverted torrent settings icon"></i>
-                                                <a style="display: none">
+                                                <a style="display: none" download>
                                                     <i class="circular teal inverted torrent cloud download icon"></i>
                                                 </a>
                                                 <a style="display: none" target="_blank">
