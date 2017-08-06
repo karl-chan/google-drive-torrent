@@ -119,6 +119,8 @@ html
         // (De)select torrent files modal
         #update-torrent-files-modal.ui.modal
             .header Select files to download
+                .ui.green.tiny.select-all.button(style="margin-left: 20px") Select all
+                .ui.red.tiny.clear-all.button(style="margin-left: 10px") Clear all
             .content
                 #torrent-files-select-form.ui.form
                     .field
@@ -504,6 +506,14 @@ html
                         }
                     })
                     .modal('show');
+
+                // Set / clear all checkboxes when labels are clicked
+                $('#update-torrent-files-modal .select-all').click(() => {
+                    $('#update-torrent-files-modal input[type="checkbox"]').prop('checked', true);
+                });
+                $('#update-torrent-files-modal .clear-all').click(() => {
+                    $('#update-torrent-files-modal input[type="checkbox"]').prop('checked', false);
+                });
             }
 
 

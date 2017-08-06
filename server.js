@@ -5,7 +5,7 @@ const driveCredentials = require('./data/driveCredentials.json');
 
 const DRIVE_CLIENT_ID = driveCredentials.clientId;
 const DRIVE_CLIENT_SECRET = driveCredentials.clientSecret;
-const DRIVE_REDIRECT_URI = process.env.DRIVE_REDIRECT_URI || 'http://localhost/login-callback';
+const DRIVE_REDIRECT_URI = process.env.DRIVE_REDIRECT_URI || 'http://localhost:3000/login-callback';
 const DRIVE_RETURN_FIELDS = 'id,name,webViewLink';
 const DRIVE_TORRENT_DIR = 'My torrents';
 
@@ -43,7 +43,7 @@ const session = require('express-session')({
     cookie: {httpOnly: true, maxAge: 3600000}
 });
 
-app.set('port', (process.env.PORT || 80));
+app.set('port', (process.env.PORT || 3000));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
