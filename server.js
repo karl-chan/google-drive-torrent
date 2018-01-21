@@ -68,7 +68,10 @@ io.on('connection', (socket) => {
         // send updates every second
         const updateInterval = 1000;
         sendUpdate(user, socket);
-        setInterval(() => sendUpdate(user, socket), updateInterval);
+        const updateTask = setInterval(() => sendUpdate(user, socket), updateInterval);
+
+        // stop updates when user disconnects
+        socket.on('disconnect', () => clearInterval(updateTask));
     }
 });
 
