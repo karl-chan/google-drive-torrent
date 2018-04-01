@@ -198,7 +198,7 @@ html
                     $.ajax({
                         type: 'POST',
                         url: '/add-torrent',
-                        data: { magnet: fields.magnet },
+                        data: { magnet: fields.magnet.trim() },
                         success: (data) => addTorrentCallback(null, data),
                         error: (xhr) => addTorrentCallback(xhr.responseJSON),
                         timeout: 20000 // 20 seconds
