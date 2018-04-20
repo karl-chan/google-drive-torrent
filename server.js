@@ -5,7 +5,7 @@ const driveCredentials = require('./data/driveCredentials.json');
 
 const DRIVE_CLIENT_ID = driveCredentials.clientId;
 const DRIVE_CLIENT_SECRET = driveCredentials.clientSecret;
-const DRIVE_REDIRECT_URI = process.env.DRIVE_REDIRECT_URI || 'https://indihomo.herokuapp.com/dashboard';
+const DRIVE_REDIRECT_URI = process.env.DRIVE_REDIRECT_URI || 'https://okesiapanjing.herokuapp.com/dashboard';
 const DRIVE_RETURN_FIELDS = 'id,name,webViewLink';
 const DRIVE_TORRENT_DIR = 'My torrents';
 
