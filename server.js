@@ -24,6 +24,7 @@ const forceHttps = require('express-force-https');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const path = require('path');
+const os = require('os');
 const locks = require('locks');
 const _ = require('lodash');
 const zip = require('express-zip');
@@ -145,13 +146,14 @@ app.get('/login-callback', (req, res) => {
             google.people('v1').people.get({
                 auth: oAuth2Client,
                 resourceName: 'people/me',
-                personFields: 'names,photos'
+                personFields: 'names,photos,metadata'
             }, (err, data) => {
                 if (err) {
                     console.error(`Failed to get user details: ${err}`);
                     return res.redirect(`/error`);
                 }
                 const user = data.data
+                user.id = user.metadata.sources[0].id
                 req.session.user = user;
                 console.log(`Obtained user: ${JSON.stringify(user)}`);
 
@@ -381,8 +383,9 @@ const addTorrentForUser = (torrent, user, callback) => {
             callback(err);
         }
 
+        const saveToPath = path.join(os.tmpdir(), user.id, infoHash)
         const torrentHandle = client.add(torrent, {
-            path: `/tmp/${user.id}/${infoHash}`
+            path: saveToPath
         }, (torrent) => {
             torrentHandle.removeListener('error', callbackWithError);
 
