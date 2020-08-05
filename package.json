@@ -13,7 +13,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
-    "express-fileupload": "^0.3.0",
+    "express-fileupload": "^1.1.9",
     "express-force-https": "^1.0.0",
     "express-session": "^1.17.0",
     "express-zip": "^2.0.2",
