@@ -23,7 +23,7 @@
     "http": "^0.0.0",
     "locks": "^0.2.2",
     "lodash": "^4.17.15",
-    "pug": "^2.0.4",
+    "pug": "^3.0.1",
     "rimraf": "^2.7.1",
     "socket.io": "^2.3.0",
     "socket.io-express-session": "^0.1.3",
