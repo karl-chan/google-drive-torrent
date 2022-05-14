@@ -154,6 +154,7 @@ html
         script(src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/moment-duration-format/1.3.0/moment-duration-format.min.js")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/filesize/3.5.10/filesize.min.js")
+        script(src="js/scripts.js")
         script.
             /* PART I: page interaction */
             // profile icon menu bar
@@ -319,7 +320,7 @@ html
                     const uploadSpeed = `${filesize(torrent.uploadSpeed)}/s`;
                     const eta = torrent.timeRemaining >= 0?
                                 moment.duration(torrent.timeRemaining).format('d[d] h[h] m[m] s[s]'): // seconds
-                                '∞'; // infinity if eta is null
+                                'âˆž'; // infinity if eta is null
 
                     if ($(`#torrent-${torrent.infoHash}`).length) {
                         // torrent already exists in page, update bar and table only
@@ -360,11 +361,12 @@ html
                                             <div class="ui right floated" onclick="event.stopPropagation()">
                                                 <i class="circular teal inverted torrent settings icon"></i>
                                                 <a style="display: none" download>
-                                                    <i class="circular teal inverted torrent cloud download icon"></i>
+                                                    <i class="circular green inverted torrent cloud download icon"></i>
                                                 </a>
                                                 <a style="display: none" target="_blank">
                                                     <i class="circular yellow inverted torrent folder open icon"></i>
-                                                </a><i class="circular red inverted torrent trash icon"></i>
+                                                </a>
+                                                <i class="circular red inverted torrent trash icon"></i>
                                             </div>
                                         </div>
                                         <div class="content">
@@ -423,8 +425,6 @@ html
                     });
                     // update modal / drive shortcut visibility
                     if (torrent.driveUrl) {
-                        $(`#torrent-${torrent.infoHash} .torrent.settings.icon`).hide();
-
                         const downloadIcon = $(`#torrent-${torrent.infoHash} a:has(.torrent.cloud.download.icon)`);
                         downloadIcon.attr('href', `download/${torrent.infoHash}`);
                         downloadIcon.show();
@@ -486,6 +486,13 @@ html
                                     <input type="checkbox" ${file.selected? 'checked': ''}>
                                     <label>${file.name} (${filesize(file.length)})</label>
                                 </div>
+                                ${
+                                    file.progress == 1?
+                                    `<a href="download/${torrent.infoHash}/${file.fileId}" download>
+                                        <i class="circular teal inverted torrent cloud download icon"></i>
+                                    </a>`:
+                                    ''
+                                }
                             </div>
                         `;
                     });
@@ -543,4 +550,3 @@ html
             socket.on('torrent-success', (torrents) => {
                 showTorrentSuccess(torrents);
             });
-
