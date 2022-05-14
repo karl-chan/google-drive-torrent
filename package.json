@@ -24,7 +24,7 @@
     "lodash": "4.17.15",
     "pug": "2.0.4",
     "rimraf": "3.0.2",
-    "socket.io": "2.3.0",
+    "socket.io": "2.4.0",
     "socket.io-express-session": "0.1.3",
     "uuid": "8.3.2",
     "webtorrent": "1.8.20"
